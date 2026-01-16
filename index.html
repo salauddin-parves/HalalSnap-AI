@@ -49,29 +49,34 @@
         padding-bottom: env(safe-area-inset-bottom);
       }
     </style>
-  <script type="importmap">
+    <!-- Google Maps script remains, but key must be replaced in build or .env -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places&callback=initMap"></script>
+    <script>
+        function initMap() {
+            console.log("Google Maps API loaded");
+            window.googleMapsLoaded = true;
+            window.dispatchEvent(new Event('google-maps-loaded'));
+        }
+    </script>
+<script type="importmap">
 {
   "imports": {
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "react": "https://esm.sh/react@^19.2.3",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@google/genai": "https://esm.sh/@google/genai@^1.35.0"
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "firebase/": "https://esm.sh/firebase@^12.8.0/",
+    "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.0.1",
+    "vite": "https://esm.sh/vite@^7.3.1",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "path": "https://esm.sh/path@^0.12.7"
   }
 }
-</script>
-<script>
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then((reg) => console.log('SW registered: ', reg))
-          .catch((err) => console.log('SW registration failed: ', err));
-      });
-    }
 </script>
 </head>
   <body class="bg-gray-50 text-gray-900 antialiased h-screen overflow-hidden selection:bg-emerald-200">
     <div id="root" class="h-full w-full"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

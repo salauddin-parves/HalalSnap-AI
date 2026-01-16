@@ -6,7 +6,8 @@ import {
     ChevronDown, ChevronUp, Search, ShieldCheck, ThumbsUp, ThumbsDown,
     Users, Star
 } from 'lucide-react';
-import { analyzeProductImage, analyzeIngredientText, analyzeIngredientText as analyzeText, askScholar } from '../services/geminiService';
+import { analyzeProductImage, analyzeIngredientText, askScholar } from '../services/geminiService';
+import { fetchProductByBarcode } from '../services/productService';
 import { ProductAnalysis, ScanStatus } from '../types';
 
 interface ScanProps {
@@ -72,7 +73,7 @@ const Scan: React.FC<ScanProps> = ({ onScanComplete, scansLeft, decrementScan, k
 
     try {
       if (mode === 'CERTIFICATION') {
-          // Simulation for certification checker
+          // Simulation for certification checker (Needs Custom Vision Model in real app)
           setTimeout(() => {
               setResult({
                   productName: "Verified Certificate",
@@ -90,6 +91,12 @@ const Scan: React.FC<ScanProps> = ({ onScanComplete, scansLeft, decrementScan, k
           return;
       }
 
+      // NEW REAL DATA LOGIC
+      // If mode is BARCODE, we simulate decoding a barcode from the image
+      // In a real native app, we would use a library like 'react-qr-barcode-scanner' to get the number string
+      // Since this is a web PWA receiving an image, we will proceed with Gemini AI
+      // HOWEVER, if the user manually entered a barcode (simulated via prompt for now), we use real DB
+      
       const analysis = await analyzeProductImage(base64Data);
       
       if (isBatchMode) {
@@ -110,6 +117,30 @@ const Scan: React.FC<ScanProps> = ({ onScanComplete, scansLeft, decrementScan, k
         }
     }
   };
+
+  const handleManualBarcode = async () => {
+      // Feature to allow manual barcode entry to test Real Data API
+      const barcode = prompt("Enter a barcode number (e.g. 3017620422003 for Nutella):");
+      if (barcode) {
+          setIsAnalyzing(true);
+          // Check Real DB First
+          const dbResult = await fetchProductByBarcode(barcode);
+          
+          if (dbResult) {
+              setResult(dbResult);
+              decrementScan();
+              setIsAnalyzing(false);
+          } else {
+              // Fallback to AI if not in DB
+              alert("Product not found in database. Trying AI analysis...");
+              // Ideally we would pass the text to Gemini here, but we'll simulate text analysis
+              const aiResult = await analyzeIngredientText(`Product with barcode ${barcode}`);
+              setResult(aiResult);
+              decrementScan();
+              setIsAnalyzing(false);
+          }
+      }
+  }
 
   const handleVoiceSearch = () => {
       const term = prompt("Simulating Voice Search: What product do you want to check?", "Is Doritos Halal?");
@@ -201,6 +232,16 @@ const Scan: React.FC<ScanProps> = ({ onScanComplete, scansLeft, decrementScan, k
                 </div>
             </div>
          </div>
+         
+         {/* Manual Entry Button (New for Real Data Testing) */}
+         {mode === 'BARCODE' && !imagePreview && (
+             <button 
+                onClick={handleManualBarcode}
+                className="absolute bottom-32 z-30 px-4 py-2 bg-black/50 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/20"
+             >
+                 Enter Barcode Manually
+             </button>
+         )}
       </div>
 
       {/* Bottom Controls */}

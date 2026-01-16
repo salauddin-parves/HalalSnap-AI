@@ -2,11 +2,13 @@
   "name": "HalalSnap AI",
   "short_name": "HalalSnap",
   "description": "Your intelligent companion for Halal dining and shopping. Scan products, check menus, and travel with confidence.",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#059669",
   "orientation": "portrait",
+  "scope": "/",
+  "id": "com.halalsnap.ai",
   "categories": ["food", "lifestyle", "travel"],
   "icons": [
     {

@@ -7,7 +7,7 @@ import Pantry from './pages/Pantry';
 import Profile from './pages/Profile';
 import MapView from './pages/Map';
 import { UserTier, ProductAnalysis, PantryItem, ScanStatus } from './types';
-import { Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff, Download, X } from 'lucide-react';
 
 // Real-world initial data for first-time users
 const INITIAL_PANTRY_DATA: PantryItem[] = [
@@ -28,6 +28,8 @@ const App: React.FC = () => {
   const [selectedRestaurant, setSelectedRestaurant] = useState<any>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showNetworkToast, setShowNetworkToast] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
   
   // Persistent State: User Tier
   const [userTier, setUserTier] = useState<UserTier>(() => {
@@ -65,9 +67,19 @@ const App: React.FC = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Install Prompt Listener
+    const handleInstallPrompt = (e: any) => {
+        e.preventDefault();
+        setInstallPrompt(e);
+        // Only show if not already dismissed recently (logic simplified for demo)
+        setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+
     return () => {
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
+        window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
     };
   }, []);
 
@@ -120,6 +132,18 @@ const App: React.FC = () => {
     setCurrentTab('map');
   };
 
+  const handleInstallClick = () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      installPrompt.userChoice.then((choiceResult: any) => {
+          if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+              setShowInstallBanner(false);
+          }
+          setInstallPrompt(null);
+      });
+  };
+
   const renderContent = () => {
     switch (currentTab) {
       case 'home':
@@ -140,8 +164,7 @@ const App: React.FC = () => {
   };
 
   return (
-    // Removed max-w-md and mx-auto to ensure full width "native" feel on Android devices
-    <div className={`h-full w-full bg-white overflow-hidden relative ${kidsMode ? 'font-comic-sans' : ''}`}>
+    <div className={`h-full w-full bg-white overflow-hidden relative flex flex-col ${kidsMode ? 'font-comic-sans' : ''}`}>
       
       {/* Network Toaster */}
       <div className={`absolute top-safe left-0 right-0 flex justify-center z-[100] transition-all duration-300 ${showNetworkToast ? 'translate-y-2 opacity-100' : '-translate-y-10 opacity-0'}`}>
@@ -151,9 +174,36 @@ const App: React.FC = () => {
           </div>
       </div>
 
-      <main className="h-full overflow-hidden">
+      {/* Install App Banner (Android APK Style) */}
+      {showInstallBanner && (
+          <div className="bg-gray-900 text-white px-4 py-3 flex items-center justify-between shrink-0 z-50 animate-in slide-in-from-top">
+              <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center shadow-inner">
+                    <img src="https://cdn-icons-png.flaticon.com/512/3024/3024059.png" className="w-6 h-6 invert" alt="Logo" />
+                  </div>
+                  <div>
+                      <h4 className="font-bold text-sm">Install HalalSnap AI</h4>
+                      <p className="text-[10px] text-gray-400">Get the full Android experience</p>
+                  </div>
+              </div>
+              <div className="flex items-center gap-3">
+                  <button 
+                    onClick={handleInstallClick}
+                    className="bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                  >
+                      <Download size={14} /> Install
+                  </button>
+                  <button onClick={() => setShowInstallBanner(false)} className="text-gray-500 hover:text-white">
+                      <X size={18} />
+                  </button>
+              </div>
+          </div>
+      )}
+
+      <main className="flex-1 overflow-hidden relative">
         {renderContent()}
       </main>
+      
       {/* Hide navigation bar when in Map View to show full screen map */}
       {currentTab !== 'map' && <Navigation currentTab={currentTab} onTabChange={setCurrentTab} />}
     </div>

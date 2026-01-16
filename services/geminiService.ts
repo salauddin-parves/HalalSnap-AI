@@ -1,7 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { ProductAnalysis, ScanStatus } from '../types';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to safely get the AI instance
+const getAI = () => {
+    // In Vite, use import.meta.env.VITE_API_KEY or the polyfilled process.env.API_KEY
+    // We default to empty string to prevent crash, error will be caught during generation call
+    const key = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY || '';
+    return new GoogleGenAI({ apiKey: key });
+};
 
 const RESPONSE_SCHEMA = {
   type: Type.OBJECT,
@@ -40,6 +46,7 @@ export const analyzeProductImage = async (base64Image: string): Promise<ProductA
   `;
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: model,
       contents: {
@@ -79,6 +86,7 @@ export const analyzeIngredientText = async (textInput: string): Promise<ProductA
   `;
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: model,
       contents: { parts: [{ text: prompt }] },
@@ -109,6 +117,7 @@ export const analyzeMenuImage = async (base64Image: string): Promise<any> => {
     `;
   
     try {
+      const ai = getAI();
       const response = await ai.models.generateContent({
         model: model,
         contents: {
@@ -156,6 +165,7 @@ export const askScholar = async (question: string, context: string): Promise<str
   `;
 
   try {
+    const ai = getAI();
     const response = await ai.models.generateContent({
       model: model,
       contents: { parts: [{ text: prompt }] }
