@@ -1,0 +1,7 @@
+{
+  "name": "HalalSnap AI",
+  "description": "Your intelligent companion for Halal dining and shopping. Scan products, check menus, and travel with confidence.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
